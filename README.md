@@ -1,6 +1,9 @@
-# Deribit-API_Authentication-Examples
-A series of examples in Python across the different provided API Protocols offered by Deribit.com
+# Deribit API - Authentication Examples
+Live Exchange: www.deribit.com
 
+Testnet: test.deribit.com
+
+A series of examples in Python across the different provided API Protocols offered by Deribit.com
 
 JSON-RPC over Websockets:
 ---

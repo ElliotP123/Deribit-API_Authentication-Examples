@@ -3,6 +3,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Local
+.history/
+.vscode/
+
+# Scratchfiles and WIP
+JSON-RPC_Websockets/scratchfile.py
+JSON-RPC_Websockets/scratchfile2.py
+JSON-RPC_HTTP/
+
 # C extensions
 *.so
 
