@@ -14,7 +14,6 @@ import websocket
 sys.path.append('/home/elliotp/dev/deribit/API-Guide/Deribit-API_Authentication-Examples/User-Credentials')                   # noqa: E501
 from UserCredentials import Client_Id, Client_Secret                                                                          # noqa: E402 E501
 
-
 class DeribitAPIAccessScope:
     def __init__(self, scope):
         self.scope = scope
@@ -71,7 +70,6 @@ class DeribitExchangeVersion:
             print('Invalid Exchange Version, please try "live" or "testnet"')
 
         return self.exchange_version
-
 
 
 class UserWebsocketEngine:
@@ -222,7 +220,7 @@ class UserWebsocketEngine:
         ws.run_forever()
 
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     # Your "scope" variable must be 'read-only' or 'read-write'.
     scope = 'read-only'
     # Your "exchange_version" variable must be 'live' or 'testnet'.
