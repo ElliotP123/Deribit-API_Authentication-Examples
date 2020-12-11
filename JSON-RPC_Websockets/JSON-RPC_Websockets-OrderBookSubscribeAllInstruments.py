@@ -77,6 +77,10 @@ class UserWebsocketEngine:
         self.authentication_refresh_flag = 0
         self.heartbeat_requested_flag = 0
         self.heartbeat_set_flag = 0
+        self.instruments_list = []
+        self.pulled_instruments_flag = 0
+        self.pulled_instruments_datetime = datetime.utcnow() + timedelta(hours=12)
+        self.instruments_subscribe_flag = 0
         self.main()
 
     def main(self):
@@ -146,10 +150,55 @@ class UserWebsocketEngine:
                 print('Successfully Subscribed to Order Book Data at: {}'.format(datetime.utcnow()))
                 for channel in range(0, len(message['result'])):
                     message_split = message['result'][channel].split('.')
-                    print('Subscription Channel: {}'.format(message_split[1]))
-                    print('Price Groupings: {}'.format(message_split[2]))
-                    print('Price Levels/Depth: {}'.format(message_split[3]))
-                    print('Interval: {}'.format(message_split[4]))
+                    # print('Subscription Channel: {}'.format(message_split[1]))
+                    # print('Price Groupings: {}'.format(message_split[2]))
+                    # print('Price Levels/Depth: {}'.format(message_split[3]))
+                    # print('Interval: {}'.format(message_split[4]))
+
+            # construct channels to subscribe to from pull instruments
+            if message['id'] == 7617:
+                self.pulled_instruments_flag = 1
+                for instrument in range(0,len(message['result'])):
+                    subscribe_channel = "book."+str(message['result'][instrument]['instrument_name'])+".none.10.100ms"
+                    self.instruments_list.append(subscribe_channel)
+
+            # subscribe to all available instruments
+            if self.instruments_subscribe_flag == 0 and self.pulled_instruments_flag == 1:
+                # Subscribing to the Order Book
+                ws_data = {"jsonrpc": "2.0",
+                            "method": "public/subscribe",
+                            "id": 42,
+                            "params": {
+                                "channels": self.instruments_list
+                                        }
+                            }
+                ws.send(json.dumps(ws_data))
+
+                self.instruments_subscribe_flag = 1
+
+            # repull all instruments and resubscribe
+            if datetime.utcnow() > self.pulled_instruments_datetime:
+                self.pulled_instruments_flag = 0
+                self.instruments_subscribe_flag = 0
+                self.instruments_list = []
+
+                # incrementing the /get_instruments datetime
+                self.pulled_instruments_datetime = datetime.utcnow() + timedelta(hours=12)
+
+                # Sending the request
+                ws_data ={
+                    "jsonrpc": "2.0",
+                    "id": 7617,
+                    "method": "public/get_instruments",
+                    "params": {
+                        "currency": "BTC",
+                        "kind": "option",
+                        "expired": False
+                                }
+                    }
+                ws.send(json.dumps(ws_data))
+
+
 
         def on_error(ws, error):
             if type(error == "<class 'websocket._exceptions.WebSocketBadStatusException'>"):  # noqa: E501
@@ -193,13 +242,17 @@ class UserWebsocketEngine:
                             }
                 ws.send(json.dumps(ws_data))
 
-            # Subscribing to the Order Book
-            ws_data = {"jsonrpc": "2.0",
-                        "method": "public/subscribe",
-                        "id": 42,
-                        "params": {
-                            "channels": ["book.BTC-PERPETUAL.none.10.100ms", "book.ETH-PERPETUAL.none.10.100ms"]}
-                                    }
+            # Pull all available BTC Option Instrument Names
+            ws_data ={
+                    "jsonrpc": "2.0",
+                    "id": 7617,
+                    "method": "public/get_instruments",
+                    "params": {
+                        "currency": "BTC",
+                        "kind": "option",
+                        "expired": False
+                                }
+                    }
             ws.send(json.dumps(ws_data))
 
         # Detailed Logging
@@ -219,6 +272,8 @@ if __name__ == "__main__":
     # Local Testing
     Client_Id = "XBagIoFw"
     Client_Secret = "BtsbXxYRbpct7ZB44BEidFPlhICBoDAOQadZ31QD_mY"
+    Client_Id = "Ac5nOoVh"
+    Client_Secret = "hrOkDCReLk00b70fBgZHolzbakzF5iGg7I4_E9hlYIc"
     
     # Your "scope" variable must be 'read-only' or 'read-write'.
     scope = 'read-only'
